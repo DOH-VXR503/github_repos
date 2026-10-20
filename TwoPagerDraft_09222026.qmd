@@ -1,0 +1,379 @@
+---
+title: "Washington State BRFSS"
+title-block-style: none
+date: today
+date-format: "MMMM DD, YYYY"
+format: html
+bibliography: references.bib
+csl: ama.csl
+link-citations: true
+header-text-page1-line1: "Implications of Funding Cuts on BRFSS"
+header-text-page1-line2: "Firearm Storage Module"
+header-text-pageX: "WA BRFSS Funding Cuts"
+header-icon-left: "images/healthy-pops-wa-people-graphic-white-reversed.png"
+header-icon-right: "images/doh_logo_horizontal_122122.svg"
+footer-icon: "images/doh_logo_horizontal_122122.svg"
+footer-text-pageX: |
+  **DOH September 2026** \
+  To request this document in another format, call 1-800-525-0127. Deaf or hard
+  of hearing customers, please call 711 (Washington Relay) or email doh.information@doh.wa.gov
+footer-text-page1: |
+  Please contact the BRFSS team at BRFSS@doh.wa.gov for more information.
+format: 
+  typst: 
+    template-partials: 
+      - typst-show.typ
+      - typst-template.typ 
+    include-before-body:
+      - text: |
+          #import "typst-footnotes.typ": endnote, printendnotes
+          #let footnote = endnote
+    include-after-body:
+      - text: |
+          #printendnotes()
+eval: true
+echo: false
+message: false
+warning: false
+---
+
+
+
+# What is the BRFSS? 
+
+Established in 1984, the Behavioral Risk Factor Surveillance System (BRFSS) is a telephone-based survey collecting data on topics like chronic health conditions, injury, and health behaviors in the U.S.[@fifth; @first] BRFSS is the longest continuously running health survey in the world and has evolved to respond to changing public health needs. [@fifth;@second]  Survey data have been a timely, reliable source of information for state, local, and Tribal officials to monitor public health emergencies and inform future funding priorities. [@fifth;@second]
+
+ 
+
+For many conditions and health behaviors, the BRFSS is the only source of information available at the state and local level.[@second] 
+
+
+
+
+# Components of the BRFSS Questionnaire:  
+
+  A.  **Core:** Created by CDC and asked in every state and territory; included in national datasets
+  B.  **CDC Optional:** Created by CDC and optional for states and territories; included in national datasets
+  C.  **State-added questions (SAQs):** Designed by Washington State; not included in national datasets
+  
+# History of WA BRFSS Funding Sources: 
+
+The financial model that funded BRFSS in the past is no longer a viable option. From 1984 to 2022, the proposing agency (agency that completes BRFSS interviews) funded BRFSS SAQs and CDC optional modules. From 2022 to 2025, FPHS has funded SAQs and CDC Optional Modules. 
+
+
+# 2026 Funding Reductions: 
+
+FPHS and general funds have been cut for 2027. 
+Despite a one-time additional source of funding that supported SAQ and CDC optional modules in 2026, **WA BRFSS program has no additional funds to cover these in future years.**
+
+While core modules will be unaffected, **SAQs and CDC optional modules are currently at risk.**
+
+Since 2022, the sample size in Washington State has ranged from 20,000 to 26,000 completes. **In 2027, this number could be as low as 6,000 completes. County-specific estimates are only possible for counties with at least 500 completed interviews per year.** Since 2022, this has included medium and large counties such as Benton, King, and Whatcom. With a total sample size of 6,000 completes county-specific estimates would only be feasible for the state's largest counties (e.g. King County).
+ 
+ 
+:::: {layout = "[55, 45]"}
+
+::: {}
+ 
+
+::: {#float-box}
+
+## `#text(fill: rgb("#942A6E"))[What is the Firearm Storage Module?]`{=typst}
+
+**Question 1 of the Module:** Are any firearms kept in or around your home?
+
+- **Response Options:**
+  - 1 = Yes
+  - 2 = No                            
+  - 7 = Don't Know                  
+  - 9 = Refused
+
+The Firearm Storage module is a SAQ, first included on the WA BRFSS in 2013 and collected in 2015 and in every even year since 2016.
+
+
+:::
+
+::: {}
+
+
+
+
+:::
+
+
+
+ 
+
+:::: {layout = "[55, 45]"}
+
+::: {}
+
+
+:::: {layout = "[55, 45]"}
+
+::: {}
+
+[**Statewide Prevalence of Firearm Ownership by Year (2013–2024)**]{style="color:blue;
+  text-align: center;"}
+
+```{r graph_code, include=FALSE}
+
+#insert figure here!
+#```{r}
+list.of.packages <- c("dplyr",
+                      "haven",
+                      "survey",
+                      "ggplot2")
+new.packages <- 
+  list.of.packages[!(list.of.packages %in% 
+                       installed.packages()[,"Package"])]
+if(length(new.packages)){
+  install.packages(new.packages)
+}
+library(dplyr)
+library(haven)
+library(survey)
+library(ggplot2)
+
+## Set your data directory: this is where you've unzipped the data package
+dataDir <- "C:/BRFSS Dataset/"
+
+## Read in the SAS data file
+data24 <- haven::read_sas(paste0(dataDir, 
+                                  "wa_brfss_2011_2024_v1.sas7bdat"))
+
+
+
+## Rename variables to no longer have a leading underscore
+names(data24) <-
+  ifelse(substr(names(data24), 1, 1)=="_",
+         sub("_", "x", names(data24)),
+         names(data24))
+
+## Set up the survey settings
+options(survey.lonely.psu = "adjust")
+
+
+#### \\\\ END SECTION I //// ###
+
+
+#### //// SECTION II: Examine the data and create the survey study design \\\\ ####
+
+## The number of rows in the dataset 
+nrow(data24)
+
+## The number of variables in the dataset
+ncol(data24)
+
+## Variable names in alphabetical order
+names(data24)[order(names(data24))]
+
+## Recode any variables that are of interest
+## Changing these to a factor will allow you to label individual values
+data24 <- data24 %>% 
+  mutate(
+    firearm_f = case_when(
+      firearm4 == 1 ~ "Yes",     
+      firearm4 == 2 ~ "No",       
+      firearm4 %in% c(7, 9) ~ NA_character_  
+    ) %>%
+      factor(levels = c("Yes", "No"))  
+  )
+
+
+
+## Set the survey design object
+design24 <- svydesign(id = ~1,
+                      strata = ~xststr,
+                      weights = ~xllcpwt, ## For single-year analyses, always
+                      ## use xllcpwt
+                      data = data24)
+
+
+#### \\\\ END SECTION II //// ###
+
+
+
+
+#### //// SECTION III: Estimate statewide weighted and unweighted prevalence \\\\ ####
+
+
+## Look at the number of observations that are missing a value
+table(is.na(data24$firearm_f))
+
+## Estimate unweighted prevalence
+prop.table(table(data24$firearm_f)) * 100
+
+(prev <- svyciprop(~I(firearm_f=="Yes"),
+                 design = design24,
+                 method = "likelihood")) 
+#survey mean assumes mean is on a continuous scale, method accounts for binomial distribution (assumes normal - symmetrical CI); could get 0.99 to 1.16 - could not be possible 
+#survey CI prop is bound by 0 and 1 because prevalence is from 0 to 1
+confint(prev)
+
+
+
+
+#SECTION IV: Calculate prevalence by year
+
+
+exclude_years <- c(2011, 2012, 2014, 2017, 2019, 2021, 2023)
+
+filtered_data <- data24 %>% filter(!year %in% exclude_years)
+
+weighted_df <- lapply(split(filtered_data, filtered_data$year), function(subdata) {
+  sub_design <- subset(design24, year == unique(subdata$year))
+  prev <- svyciprop(~I(firearm_f=="Yes"), design = sub_design, method = "likelihood")
+  ci <- confint(prev) #output would look different 
+  
+  data.frame(
+    year = unique(subdata$year), 
+    prevalence = as.numeric(prev),
+    lower_CI = ci[, 1],
+    upper_CI = ci[, 2]
+  )
+}) %>%
+  bind_rows() %>%
+  arrange(year)
+
+
+weighted_df <- weighted_df %>%
+  mutate(
+    label = sprintf("%.3f\n(%.3f–%.3f)", prevalence, lower_CI, upper_CI)
+  )
+
+
+
+all_years <- c(2013, 2015, 2016, 2018, 2020, 2022, 2024)
+
+
+#don't want all years, start from 2013, 
+
+#Section V: Plot the Prevalence
+
+# Example plot with y-axis break
+(p <- ggplot(weighted_df, aes(x = year, y = prevalence)) +
+  geom_point(size = 3, color = "steelblue") +
+ geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI),
+               width = 0.2, color = "steelblue") +
+  scale_x_continuous(breaks = all_years) +
+  
+  # Set y-axis range and add a break
+  # scale_y_break(c(0, 1.5), scales = 0.5) + 
+ # coord_cartesian(ylim = c(1.5, 2.5)) +    
+  ylim (0.3, 0.4) +
+  labs(
+    x = "Year",
+    y = "Prevalence"
+  ) +
+  theme_minimal() +
+  theme(
+   panel.grid.major.x = element_blank(),  # Remove major vertical lines
+    panel.grid.minor.x = element_blank()   # Remove minor vertical lines
+  ))
+
+
+
+
+
+
+
+             
+```
+
+
+```{r graph_display, echo = FALSE}
+#| fig-cap: 'Source: Behavioral Risk Factor Surveillance System (BRFSS), 2013-2024.'
+#| fig-alt: 'Alt text for this simple scatterplot.'
+#| fig-width: 5       # width in inches
+#| fig-height: 3      # height in inches
+#| out-width: "90%"   # scale down in HTML
+
+p
+
+```
+
+:::
+
+::: {}
+
+::: {.callout-tip title="Dr. Ali Rowhani-Rahbar (University of Washington)"}
+“I’m not aware of any other data source that collects state-level data on household firearm ownership and storage. Without the module, we will not be able to look at the impact of state laws, policies, and programs on household firearm ownership and storage. [^third] It's very concerning ” **- Dr. Ali Rowhani-Rahbar**
+:::
+
+:::
+
+:::
+
+::::
+
+
+
+
+# How this affects the Firearm Storage Module:  
+
+The WA BRFSS Firearm Storage Module will no longer be funded by FPHS, and these data will not be collected for the 2027 BRFSS Survey. 
+
+  
+
+Failing to collect this data for 2026 will have long-term impacts on the sample size and validity of the BRFSS data source and affect all organizations who utilize this critical data source in their work. King County utilizes the data from the Firearm Storage module in their LOCK-IT-UP program as a marketing tool to receive funding.[^sixth] 
+
+ 
+
+
+::: {.callout-tip title="Call to Action" icon="false" appearance="minimal"}
+We urge you to contact your agency's leadership to help allocate funding for the BRFSS program to be able to collect this valuable health data. Please consider partnering with professional organizations like WSALPHO, IHC, and WSPHA. 
+:::
+
+
+
+
+[^first]: Behavioral risk factor surveillance system. Centers for Disease Control and Prevention. February 4, 2026. Accessed August 19, 2026. https://www.cdc.gov/brfss/index.html. 
+
+[^second]: CDC - BRFSS Fact Sheets. Centers for Disease Control and Prevention. August 29, 2017. Accessed September 9, 2026. https://archive.cdc.gov/www_cdc_gov/brfss/factsheets/index.htm. 
+
+[^third]: Household firearm storage practices | Public Health | Jama Network open | jama network. Accessed September 15, 2026. https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2836020. 
+
+[^fifth]: Data Source: Washington State Department of Health, Center for Epidemiology Practice, Equity, and Assessment, Behavioral Risk Factor Surveillance System, supported in part by the Centers for Disease Control and Prevention, Cooperative Agreements NU58DP006865-03-01and NU58DP007874-01-02 (2024).
+
+[^sixth]: Lock it up: Promoting the safe storage of firearms. King County, Washington. Accessed September 22, 2026. https://kingcounty.gov/en/dept/dph/health-safety/safety-injury-prevention/preventing-gun-violence/safe-firearm-storage. 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+:::
+
+::: {}
+
+
+:::
+
+::: {} 
+
+:::
+
+
+
+
+`#text(size:14pt, fill: rgb("#942A6E"))[]`{=typst} 
+
+
+
